@@ -69,4 +69,76 @@ public class MovieService {
         }
         return Optional.ofNullable(movieMap.get(id));
     }
+
+    /**
+     * Searches for movies based on the provided criteria with pirate-themed logging.
+     * Ahoy! This method be the treasure map to find yer desired movies, matey!
+     * 
+     * @param name Movie name to search for (partial, case-insensitive)
+     * @param id Specific movie ID to find
+     * @param genre Genre to filter by (exact match, case-insensitive)
+     * @return List of movies matching the search criteria
+     */
+    public List<Movie> searchMovies(String name, Long id, String genre) {
+        logger.info("Ahoy! Starting treasure hunt for movies with criteria - name: '{}', id: {}, genre: '{}'", 
+                   name, id, genre);
+        
+        List<Movie> searchResults = new ArrayList<>();
+        
+        // If searching by ID, return that specific movie if found
+        if (id != null && id > 0) {
+            Optional<Movie> movieById = getMovieById(id);
+            if (movieById.isPresent()) {
+                logger.info("Arrr! Found treasure by ID: {}", movieById.get().getMovieName());
+                searchResults.add(movieById.get());
+                return searchResults;
+            } else {
+                logger.warn("Blimey! No treasure found with ID: {}", id);
+                return searchResults; // Return empty list
+            }
+        }
+        
+        // Filter movies based on name and/or genre
+        for (Movie movie : movies) {
+            boolean matchesName = true;
+            boolean matchesGenre = true;
+            
+            // Check name criteria (partial, case-insensitive)
+            if (name != null && !name.trim().isEmpty()) {
+                matchesName = movie.getMovieName().toLowerCase().contains(name.toLowerCase().trim());
+            }
+            
+            // Check genre criteria (exact match, case-insensitive)
+            if (genre != null && !genre.trim().isEmpty()) {
+                matchesGenre = movie.getGenre().toLowerCase().equals(genre.toLowerCase().trim());
+            }
+            
+            // Add movie if it matches all criteria
+            if (matchesName && matchesGenre) {
+                searchResults.add(movie);
+            }
+        }
+        
+        if (searchResults.isEmpty()) {
+            logger.info("Shiver me timbers! No treasure found matching yer search criteria, matey!");
+        } else {
+            logger.info("Yo ho ho! Found {} pieces of treasure matching yer search!", searchResults.size());
+        }
+        
+        return searchResults;
+    }
+
+    /**
+     * Gets all unique genres available in the movie collection.
+     * Useful for populating search form dropdowns, ye savvy pirate!
+     * 
+     * @return List of unique genres
+     */
+    public List<String> getAllGenres() {
+        return movies.stream()
+                .map(Movie::getGenre)
+                .distinct()
+                .sorted()
+                .collect(java.util.stream.Collectors.toList());
+    }
 }
